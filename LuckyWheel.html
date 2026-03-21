@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trò Chơi Lớp Học - Classroom Games</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, Arial, sans-serif;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    color: #fff;
+    overflow-x: hidden;
+  }
+
+  /* ========== TAB NAVIGATION ========== */
+  .tab-bar {
+    display: flex;
+    gap: 4px;
+    padding: 12px 16px 0;
+    width: 100%;
+    max-width: 600px;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .tab-btn {
+    padding: 10px 24px;
+    font-size: clamp(13px, 3.5vw, 16px);
+    font-weight: 700;
+    color: rgba(255,255,255,.5);
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.1);
+    border-bottom: none;
+    border-radius: 12px 12px 0 0;
+    cursor: pointer;
+    transition: all .2s;
+    letter-spacing: .5px;
+  }
+  .tab-btn:hover { color: rgba(255,255,255,.8); background: rgba(255,255,255,.1); }
+  .tab-btn.active {
+    color: #fff;
+    background: rgba(255,255,255,.12);
+    border-color: rgba(255,255,255,.25);
+  }
+  .tab-content {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    width: 100%;
+    padding: 16px;
+  }
+  .tab-content.active { display: flex; }
+
+  /* ========== LUCKY WHEEL TAB ========== */
+  h1 {
+    font-size: clamp(18px, 5vw, 28px);
+    font-weight: 800;
+    margin-bottom: 12px;
+    text-shadow: 0 2px 10px rgba(0,0,0,.5);
+    letter-spacing: 1px;
+    text-align: center;
+  }
+  .wheel-container {
+    position: relative;
+    width: min(480px, 85vw, 85vh - 200px);
+    height: min(480px, 85vw, 85vh - 200px);
+  }
+  .wheel-container canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border-radius: 50%;
+    box-shadow: 0 0 40px rgba(255,255,255,.15), 0 0 80px rgba(100,100,255,.1);
+  }
+  /* Arrow pointer on the right, outside the wheel */
+  .arrow {
+    position: absolute;
+    top: 50%;
+    right: clamp(-50px, -7vw, -35px);
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-top: clamp(12px, 3vw, 20px) solid transparent;
+    border-bottom: clamp(12px, 3vw, 20px) solid transparent;
+    border-right: clamp(28px, 6vw, 45px) solid #ff2d55;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,.4));
+    z-index: 10;
+  }
+  .arrow::after {
+    content: '';
+    position: absolute;
+    top: clamp(-6px, -1.5vw, -10px);
+    right: clamp(-48px, -6vw, -32px);
+    width: clamp(12px, 3vw, 20px);
+    height: clamp(12px, 3vw, 20px);
+    background: #ff2d55;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0,0,0,.3);
+  }
+  .action-btn {
+    margin-top: 16px;
+    padding: 12px 40px;
+    font-size: clamp(16px, 4vw, 20px);
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, #ff416c, #ff4b2b);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(255,65,108,.4);
+    transition: transform .15s, box-shadow .15s;
+    letter-spacing: 1px;
+  }
+  .action-btn:hover { transform: scale(1.05); box-shadow: 0 6px 28px rgba(255,65,108,.6); }
+  .action-btn:active { transform: scale(.97); }
+  .action-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+  .result-text {
+    margin-top: 14px;
+    font-size: clamp(20px, 5vw, 32px);
+    font-weight: 800;
+    min-height: 36px;
+    text-align: center;
+    text-shadow: 0 2px 8px rgba(0,0,0,.4);
+    padding: 0 12px;
+    word-break: break-word;
+  }
+  .confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
+
+  /* Student list editor */
+  .editor-toggle {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.25);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    backdrop-filter: blur(8px);
+    z-index: 40;
+  }
+  .editor-toggle:hover { background: rgba(255,255,255,.25); }
+  .editor-panel {
+    display: none;
+    position: fixed;
+    top: 50px;
+    right: 12px;
+    width: min(280px, calc(100vw - 24px));
+    max-height: calc(100vh - 70px);
+    overflow-y: auto;
+    background: rgba(20,20,40,.95);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 12px;
+    padding: 16px;
+    backdrop-filter: blur(12px);
+    z-index: 50;
+  }
+  .editor-panel.open { display: block; }
+  .editor-panel h3 { margin-bottom: 8px; font-size: 15px; }
+  .editor-panel textarea {
+    width: 100%;
+    height: 200px;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 8px;
+    color: #fff;
+    padding: 10px;
+    font-size: 13px;
+    font-family: inherit;
+    resize: vertical;
+  }
+  .editor-panel button {
+    margin-top: 8px;
+    width: 100%;
+    padding: 8px;
+    background: #4f46e5;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .editor-panel button:hover { background: #4338ca; }
+
+  /* Cheat panel */
+  .cheat-panel {
+    display: none;
+    position: fixed;
+    bottom: 12px;
+    left: 12px;
+    background: rgba(20,20,40,.95);
+    border: 1px solid rgba(255,0,0,.3);
+    border-radius: 12px;
+    padding: 14px;
+    backdrop-filter: blur(12px);
+    z-index: 50;
+    min-width: 220px;
+  }
+  .cheat-panel.open { display: block; }
+  .cheat-panel h3 { font-size: 13px; color: #ff4444; margin-bottom: 8px; }
+  .cheat-panel select {
+    width: 100%;
+    padding: 8px;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .cheat-panel select option { background: #1a1a2e; color: #fff; }
+  .cheat-panel .cheat-hint { font-size: 11px; color: rgba(255,255,255,.4); margin-top: 6px; }
+  .cheat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background .15s;
+  }
+  .cheat-item:hover { background: rgba(255,255,255,.1); }
+  .cheat-item input[type="checkbox"] {
+    accent-color: #ff2d55;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+  }
+
+  /* ========== RANDOM PICK TAB ========== */
+  .pick-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+  .pick-display {
+    width: min(360px, 80vw);
+    height: min(360px, 80vw);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,.08), rgba(255,255,255,.02));
+    border: 3px solid rgba(255,255,255,.15);
+    box-shadow: 0 0 40px rgba(255,255,255,.08), 0 0 80px rgba(100,100,255,.06);
+    position: relative;
+    overflow: hidden;
+  }
+  .pick-name {
+    font-size: clamp(24px, 7vw, 48px);
+    font-weight: 800;
+    text-align: center;
+    padding: 20px;
+    word-break: break-word;
+    text-shadow: 0 2px 10px rgba(0,0,0,.5);
+    transition: opacity .1s;
+  }
+  .pick-name.shuffling {
+    animation: pickPulse .15s ease-in-out infinite alternate;
+  }
+  @keyframes pickPulse {
+    from { opacity: .6; transform: scale(.97); }
+    to { opacity: 1; transform: scale(1.03); }
+  }
+
+  /* ========== FILL IN THE BLANKS TAB ========== */
+  .fill-game {
+    width: min(700px, 92vw);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .fill-question-nav {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .fill-nav-btn {
+    padding: 6px 16px;
+    background: rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.2);
+    color: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background .15s;
+  }
+  .fill-nav-btn:hover { background: rgba(255,255,255,.2); }
+  .fill-nav-btn:disabled { opacity: .3; cursor: not-allowed; }
+  .fill-question-num {
+    font-size: 15px;
+    font-weight: 700;
+    min-width: 60px;
+    text-align: center;
+  }
+  .fill-sentence {
+    font-size: clamp(18px, 4.5vw, 26px);
+    line-height: 2.2;
+    text-align: center;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 16px;
+    padding: 24px 28px;
+    width: 100%;
+    word-break: break-word;
+  }
+  .fill-blank {
+    display: inline-block;
+    min-width: 80px;
+    padding: 4px 12px;
+    border-bottom: 3px dashed rgba(255,255,255,.4);
+    margin: 0 4px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+    border-radius: 6px 6px 0 0;
+    font-weight: 700;
+    color: #FFD700;
+  }
+  .fill-blank:hover { background: rgba(255,255,255,.1); }
+  .fill-blank.active {
+    border-bottom-color: #ff2d55;
+    background: rgba(255,45,85,.15);
+  }
+  .fill-blank.correct {
+    border-bottom-color: #2ECC71;
+    background: rgba(46,204,113,.15);
+    color: #2ECC71;
+  }
+  .fill-blank.wrong {
+    border-bottom-color: #E74C3C;
+    background: rgba(231,76,60,.15);
+    color: #E74C3C;
+  }
+  .fill-blank.filled { border-bottom-style: solid; }
+  .fill-words {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    padding: 8px 0;
+  }
+  .fill-word {
+    padding: 8px 20px;
+    background: rgba(255,255,255,.1);
+    border: 2px solid rgba(255,255,255,.2);
+    border-radius: 30px;
+    color: #fff;
+    font-size: clamp(14px, 3.5vw, 18px);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+    user-select: none;
+  }
+  .fill-word:hover { background: rgba(255,255,255,.2); transform: scale(1.05); }
+  .fill-word.used {
+    opacity: .3;
+    transform: scale(.95);
+    cursor: default;
+  }
+  .fill-edit-btn {
+    margin-top: 8px;
+    padding: 8px 20px;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.15);
+    color: rgba(255,255,255,.6);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .fill-edit-btn:hover { background: rgba(255,255,255,.15); color: #fff; }
+  .fill-editor {
+    display: none;
+    width: min(700px, 92vw);
+    background: rgba(20,20,40,.95);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 12px;
+    backdrop-filter: blur(12px);
+  }
+  .fill-editor.open { display: block; }
+  .fill-editor h3 { margin-bottom: 8px; font-size: 16px; }
+  .fill-editor-hint {
+    font-size: 13px;
+    color: rgba(255,255,255,.6);
+    margin-bottom: 12px;
+    line-height: 1.6;
+  }
+  .fill-editor-hint code {
+    background: rgba(255,255,255,.12);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  .fill-editor textarea {
+    width: 100%;
+    min-height: 180px;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 8px;
+    color: #fff;
+    padding: 12px;
+    font-size: 14px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    resize: vertical;
+    line-height: 1.5;
+  }
+  .fill-editor button {
+    margin-top: 8px;
+    padding: 10px 20px;
+    background: #4f46e5;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    margin-right: 8px;
+  }
+  .fill-editor button:hover { background: #4338ca; }
+
+  /* ========== DRAG & DROP TAB ========== */
+  .drag-game {
+    width: min(700px, 92vw);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .drag-sentence {
+    font-size: clamp(18px, 4.5vw, 26px);
+    line-height: 2.4;
+    text-align: center;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 16px;
+    padding: 24px 28px;
+    width: 100%;
+    word-break: break-word;
+  }
+  .drag-blank {
+    display: inline-block;
+    min-width: 90px;
+    min-height: 36px;
+    padding: 4px 14px;
+    border: 2px dashed rgba(255,255,255,.35);
+    margin: 0 4px;
+    text-align: center;
+    border-radius: 8px;
+    font-weight: 700;
+    color: #FFD700;
+    vertical-align: middle;
+    transition: all .2s;
+    background: rgba(255,255,255,.03);
+  }
+  .drag-blank.drag-over {
+    border-color: #ff2d55;
+    background: rgba(255,45,85,.15);
+    transform: scale(1.05);
+  }
+  .drag-blank.filled {
+    border-style: solid;
+    border-color: rgba(255,215,0,.4);
+    background: rgba(255,215,0,.08);
+    cursor: grab;
+  }
+  .drag-blank.correct {
+    border-color: #2ECC71;
+    background: rgba(46,204,113,.15);
+    color: #2ECC71;
+  }
+  .drag-blank.wrong {
+    border-color: #E74C3C;
+    background: rgba(231,76,60,.15);
+    color: #E74C3C;
+  }
+  .drag-words {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    padding: 12px 0;
+    min-height: 56px;
+  }
+  .drag-word {
+    padding: 10px 22px;
+    background: rgba(255,255,255,.1);
+    border: 2px solid rgba(255,255,255,.25);
+    border-radius: 30px;
+    color: #fff;
+    font-size: clamp(14px, 3.5vw, 18px);
+    font-weight: 600;
+    cursor: grab;
+    transition: all .2s;
+    user-select: none;
+    touch-action: none;
+  }
+  .drag-word:hover { background: rgba(255,255,255,.2); transform: scale(1.05); }
+  .drag-word:active { cursor: grabbing; }
+  .drag-word.dragging {
+    opacity: .4;
+    transform: scale(.9);
+  }
+  .drag-word.used {
+    opacity: .25;
+    transform: scale(.9);
+    cursor: default;
+    pointer-events: none;
+  }
+  .drag-ghost {
+    position: fixed;
+    padding: 10px 22px;
+    background: rgba(255,65,108,.85);
+    border: 2px solid #ff2d55;
+    border-radius: 30px;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 8px 30px rgba(255,45,85,.4);
+    white-space: nowrap;
+  }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 520px) {
+    .tab-bar { padding: 8px 8px 0; }
+    .tab-btn { padding: 8px 16px; }
+    .tab-content { padding: 10px; }
+    h1 { margin-bottom: 8px; }
+    .action-btn { padding: 10px 32px; margin-top: 12px; }
+    .result-text { margin-top: 10px; min-height: 28px; }
+    .editor-toggle { padding: 6px 12px; font-size: 12px; top: 8px; right: 8px; }
+    .editor-panel { top: 40px; right: 8px; padding: 12px; }
+    .editor-panel textarea { height: 150px; }
+    .cheat-panel { bottom: 8px; left: 8px; padding: 10px; min-width: 180px; }
+  }
+
+  @media (max-height: 600px) {
+    h1 { margin-bottom: 6px; font-size: 18px; }
+    .action-btn { margin-top: 8px; padding: 8px 28px; }
+    .result-text { margin-top: 6px; }
+  }
+
+  @media (max-height: 500px) and (orientation: landscape) {
+    .tab-content { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 12px; padding: 8px; }
+    h1 { width: 100%; text-align: center; margin-bottom: 4px; font-size: 16px; }
+    .wheel-container { width: min(280px, 60vh); height: min(280px, 60vh); }
+    .action-btn { margin-top: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== TAB BAR ========== -->
+<nav class="tab-bar">
+  <button class="tab-btn active" data-tab="wheel">Vòng Quay</button>
+  <button class="tab-btn" data-tab="pick">Bốc Thăm</button>
+  <button class="tab-btn" data-tab="fill">Điền Ô Trống</button>
+  <button class="tab-btn" data-tab="drag">Kéo Thả</button>
+</nav>
+
+<!-- ========== TAB 1: LUCKY WHEEL ========== -->
+<div class="tab-content active" id="tab-wheel">
+  <h1>VÒNG QUAY MAY MẮN</h1>
+  <div class="wheel-container">
+    <div class="arrow"></div>
+    <canvas id="wheel" width="960" height="960"></canvas>
+  </div>
+  <button class="action-btn" id="spinBtn">QUAY</button>
+  <div class="result-text" id="result"></div>
+</div>
+
+<!-- ========== TAB 2: RANDOM PICK ========== -->
+<div class="tab-content" id="tab-pick">
+  <h1>BỐC THĂM NGẪU NHIÊN</h1>
+  <div class="pick-area">
+    <div class="pick-display">
+      <div class="pick-name" id="pickName">?</div>
+    </div>
+    <button class="action-btn" id="pickBtn">BỐC THĂM</button>
+    <div class="result-text" id="pickResult"></div>
+  </div>
+</div>
+
+<!-- ========== TAB 3: FILL IN THE BLANKS ========== -->
+<div class="tab-content" id="tab-fill">
+  <h1>ĐIỀN VÀO Ô TRỐNG</h1>
+  <div class="fill-game">
+    <div class="fill-question-nav">
+      <button class="fill-nav-btn" id="fillPrev">&laquo; Trước</button>
+      <span class="fill-question-num" id="fillQNum">1 / 1</span>
+      <button class="fill-nav-btn" id="fillNext">Sau &raquo;</button>
+    </div>
+    <div class="fill-sentence" id="fillSentence"></div>
+    <div class="fill-words" id="fillWords"></div>
+    <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; justify-content:center;">
+      <button class="action-btn" id="fillCheck" style="margin-top:0;">Kiểm tra</button>
+      <button class="action-btn" id="fillReset" style="margin-top:0; background:linear-gradient(135deg,#555,#333);">Làm lại</button>
+    </div>
+    <div class="result-text" id="fillResult"></div>
+    <button class="fill-edit-btn" id="fillEditToggle">Soạn câu hỏi</button>
+  </div>
+
+  <!-- Fill editor panel -->
+  <div class="fill-editor" id="fillEditor">
+    <h3>Soạn câu hỏi</h3>
+    <p class="fill-editor-hint">
+      Mỗi câu hỏi gồm 3 dòng:<br>
+      <b>Dòng 1:</b> Câu văn, dùng <code>___</code> cho ô trống<br>
+      <b>Dòng 2:</b> Đáp án đúng theo thứ tự, cách bởi dấu <code>|</code><br>
+      <b>Dòng 3:</b> Từ gợi ý (gồm đáp án + từ nhiễu), cách bởi dấu <code>|</code><br>
+      Cách nhau bởi 1 dòng trống.
+    </p>
+    <textarea id="fillInput" rows="12"></textarea>
+    <button id="fillApply">Áp dụng</button>
+    <button id="fillEditorClose" style="background:#555;">Đóng</button>
+  </div>
+</div>
+
+<!-- ========== TAB 4: DRAG & DROP FILL ========== -->
+<div class="tab-content" id="tab-drag">
+  <h1>KÉO THẢ VÀO Ô TRỐNG</h1>
+  <div class="drag-game">
+    <div class="fill-question-nav">
+      <button class="fill-nav-btn" id="dragPrev">&laquo; Trước</button>
+      <span class="fill-question-num" id="dragQNum">1 / 1</span>
+      <button class="fill-nav-btn" id="dragNext">Sau &raquo;</button>
+    </div>
+    <div class="drag-sentence" id="dragSentence"></div>
+    <div class="drag-words" id="dragWords"></div>
+    <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; justify-content:center;">
+      <button class="action-btn" id="dragCheck" style="margin-top:0;">Kiểm tra</button>
+      <button class="action-btn" id="dragReset" style="margin-top:0; background:linear-gradient(135deg,#555,#333);">Làm lại</button>
+    </div>
+    <div class="result-text" id="dragResult"></div>
+    <button class="fill-edit-btn" id="dragEditToggle">Soạn câu hỏi</button>
+  </div>
+
+  <div class="fill-editor" id="dragEditor">
+    <h3>Soạn câu hỏi</h3>
+    <p class="fill-editor-hint">
+      Mỗi câu hỏi gồm 3 dòng:<br>
+      <b>Dòng 1:</b> Câu văn, dùng <code>___</code> cho ô trống<br>
+      <b>Dòng 2:</b> Đáp án đúng theo thứ tự, cách bởi dấu <code>|</code><br>
+      <b>Dòng 3:</b> Từ gợi ý (gồm đáp án + từ nhiễu), cách bởi dấu <code>|</code><br>
+      Cách nhau bởi 1 dòng trống.
+    </p>
+    <textarea id="dragInput" rows="12"></textarea>
+    <button id="dragApply">Áp dụng</button>
+    <button id="dragEditorClose" style="background:#555;">Đóng</button>
+  </div>
+</div>
+
+<!-- Shared -->
+<canvas class="confetti" id="confetti"></canvas>
+<button class="editor-toggle" id="editorToggle">Danh sách</button>
+
+<!-- Secret cheat panel: Ctrl+Shift+K to toggle -->
+<div class="cheat-panel" id="cheatPanel">
+  <h3>Chọn học sinh:</h3>
+  <div id="cheatList" style="max-height:220px; overflow-y:auto; margin-bottom:6px;"></div>
+  <div style="display:flex; gap:6px; margin-bottom:6px;">
+    <button id="cheatAll" style="flex:1; padding:4px; background:#4f46e5; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:12px;">Chọn tất cả</button>
+    <button id="cheatNone" style="flex:1; padding:4px; background:#555; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:12px;">Bỏ chọn</button>
+  </div>
+  <label class="cheat-item" style="margin-top:6px; border-top:1px solid rgba(255,255,255,.15); padding-top:8px;">
+    <input type="checkbox" id="cheatRemoveWinner"> Xóa người thắng khỏi danh sách
+  </label>
+  <div class="cheat-hint">Ctrl+Shift+K để ẩn/hiện</div>
+</div>
+<div class="editor-panel" id="editorPanel">
+  <h3>Danh sách học sinh (mỗi dòng 1 tên):</h3>
+  <textarea id="studentInput"></textarea>
+  <button id="applyList">Áp dụng</button>
+</div>
+
+<script>
+/* ========== TAB NAVIGATION ========== */
+const tabBtns = document.querySelectorAll('.tab-btn');
+const tabContents = document.querySelectorAll('.tab-content');
+
+tabBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.tab;
+    tabBtns.forEach(b => b.classList.remove('active'));
+    tabContents.forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + target).classList.add('active');
+  });
+});
+
+/* ========== STUDENT LIST ========== */
+let students = [
+  "Đỗ Ngọc Khánh An",
+  "Đỗ Nguyễn Tú Anh",
+  "Lê Trần Quốc Anh",
+  "Nguyễn Võ Minh Anh",
+  "Phạm Phương Anh",
+  "Tạ Vũ Minh Anh",
+  "Nguyễn Hoàng Ân",
+  "Nguyễn Đức Công Bình",
+  "Nguyễn Thị Thùy Duyên",
+  "Lê Trịnh Gia Hân",
+  "Nguyễn Ngọc Bảo Hân",
+  "Võ Hoàng Ngọc Hân",
+  "Đỗ Ngọc Gia Hân",
+  "Đỗ Minh Hiếu",
+  "Vũ Gia Hòa",
+  "Lê Nguyễn Thanh Huy",
+  "Đặng Hoàng Hưng",
+  "Nguyễn Duy Khang",
+  "Nguyễn Võ Đăng Khoa",
+  "Lê Nguyễn Bảo Khánh",
+  "Nguyễn Lê Gia Khiêm",
+  "Phạm Đăng Khôi",
+  "Trần Ngọc Phúc Lâm",
+  "Nguyễn Huyền Khánh Linh",
+  "Cao Khánh Linh",
+  "Nguyễn Trần Khánh Ly",
+  "La Khải Minh",
+  "Nguyễn Phương Nghi",
+  "Phan Hoàng Hải Nguyên",
+  "Đặng Hoàng Phương Nhi",
+  "Huỳnh Mẫn Nhi",
+  "Nguyễn Vũ Gia Nhi",
+  "Trương Bảo Ngọc",
+  "Dương Bảo Phúc",
+  "Trần Phú",
+  "Nguyễn Hà Khánh Phương",
+  "Đàm Minh Quân",
+  "Hồ Thiên Sơn",
+  "Phạm Ngọc Bảo Thiên",
+  "Nguyễn Cát Thịnh",
+  "Nguyễn Lê Phúc Thịnh",
+  "Lê Nguyễn Minh Thư",
+  "Lài Xuân Tú",
+  "Nguyễn Việt Anh Tài",
+  "Lê Quang Thịnh",
+  "Nguyễn Tường Vy",
+  "Nguyễn Nhân Thiên Ý"
+];
+
+/* ========== COLORS ========== */
+function randomColor() {
+  const h = Math.floor(Math.random() * 360);
+  const s = 55 + Math.floor(Math.random() * 35);
+  const l = 40 + Math.floor(Math.random() * 25);
+  return `hsl(${h}, ${s}%, ${l}%)`;
+}
+
+let sliceColors = [];
+function generateColors() {
+  sliceColors = students.map(() => randomColor());
+}
+generateColors();
+
+// Keep a fixed palette for confetti
+const COLORS = [
+  '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40',
+  '#E74C3C', '#2ECC71', '#3498DB', '#F39C12', '#8E44AD', '#1ABC9C'
+];
+
+/* ========== CANVAS SETUP ========== */
+const canvas = document.getElementById('wheel');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, R = W / 2;
+
+let currentRotation = 0;
+let isSpinning = false;
+
+/* ========== DRAW WHEEL ========== */
+function drawWheel() {
+  const n = students.length;
+  const arc = (2 * Math.PI) / n;
+
+  ctx.clearRect(0, 0, W, W);
+  ctx.save();
+  ctx.translate(R, R);
+  ctx.rotate(currentRotation);
+
+  for (let i = 0; i < n; i++) {
+    const startAngle = i * arc;
+    const endAngle = startAngle + arc;
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, R - 6, startAngle, endAngle);
+    ctx.closePath();
+    ctx.fillStyle = sliceColors[i] || randomColor();
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(255,255,255,.5)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.save();
+    ctx.rotate(startAngle + arc / 2);
+    ctx.fillStyle = '#fff';
+    ctx.font = `bold ${Math.min(22, Math.max(12, Math.floor(280 / n)))}px 'Segoe UI', system-ui, sans-serif`;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(0,0,0,.5)';
+    ctx.shadowBlur = 3;
+
+    let name = students[i];
+    if (ctx.measureText(name).width > R - 70) {
+      while (ctx.measureText(name + '...').width > R - 70 && name.length > 1) {
+        name = name.slice(0, -1);
+      }
+      name += '...';
+    }
+    ctx.fillText(name, R - 30, 0);
+    ctx.restore();
+  }
+
+  ctx.beginPath();
+  ctx.arc(0, 0, 36, 0, 2 * Math.PI);
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(0, 0, 24, 0, 2 * Math.PI);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+
+  ctx.restore();
+
+  ctx.beginPath();
+  ctx.arc(R, R, R - 2, 0, 2 * Math.PI);
+  ctx.strokeStyle = 'rgba(255,255,255,.3)';
+  ctx.lineWidth = 4;
+  ctx.stroke();
+}
+
+/* ========== GET WINNER ========== */
+function getWinnerIndex() {
+  const n = students.length;
+  const arc = (2 * Math.PI) / n;
+  let localAngle = (0 - currentRotation) % (2 * Math.PI);
+  if (localAngle < 0) localAngle += 2 * Math.PI;
+  let idx = Math.floor(localAngle / arc) % n;
+  return idx;
+}
+
+/* ========== AUDIO ========== */
+let audioCtx;
+function ensureAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function playTick() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(1200, t);
+  osc.frequency.exponentialRampToValueAtTime(800, t + 0.03);
+  gain.gain.setValueAtTime(0.15, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start(t);
+  osc.stop(t + 0.06);
+}
+
+function playWinSound() {
+  if (!audioCtx) return;
+  const t0 = audioCtx.currentTime;
+  [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+    const t = t0 + i * 0.12;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, t);
+    gain.gain.setValueAtTime(0.001, t);
+    gain.gain.exponentialRampToValueAtTime(0.3, t + 0.04);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(t);
+    osc.stop(t + 0.5);
+  });
+}
+
+/* ========== CONFETTI ========== */
+const confettiCanvas = document.getElementById('confetti');
+const cctx = confettiCanvas.getContext('2d');
+let confettiPieces = [];
+let confettiAnim = null;
+
+function resizeConfetti() {
+  confettiCanvas.width = window.innerWidth;
+  confettiCanvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeConfetti);
+resizeConfetti();
+
+function launchConfetti() {
+  confettiPieces = [];
+  for (let i = 0; i < 150; i++) {
+    confettiPieces.push({
+      x: Math.random() * confettiCanvas.width,
+      y: -20 - Math.random() * 200,
+      w: 6 + Math.random() * 6,
+      h: 10 + Math.random() * 10,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      vx: (Math.random() - 0.5) * 4,
+      vy: 2 + Math.random() * 4,
+      rot: Math.random() * Math.PI * 2,
+      rotV: (Math.random() - 0.5) * 0.2,
+      opacity: 1
+    });
+  }
+  if (confettiAnim) cancelAnimationFrame(confettiAnim);
+  animateConfetti();
+}
+
+function animateConfetti() {
+  cctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+  let alive = false;
+  confettiPieces.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.05;
+    p.rot += p.rotV;
+    if (p.y > confettiCanvas.height + 20) {
+      p.opacity -= 0.02;
+    }
+    if (p.opacity <= 0) return;
+    alive = true;
+    cctx.save();
+    cctx.translate(p.x, p.y);
+    cctx.rotate(p.rot);
+    cctx.globalAlpha = Math.max(0, p.opacity);
+    cctx.fillStyle = p.color;
+    cctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+    cctx.restore();
+  });
+  if (alive) {
+    confettiAnim = requestAnimationFrame(animateConfetti);
+  }
+}
+
+/* ========== CHEAT SYSTEM ========== */
+const cheatPanel = document.getElementById('cheatPanel');
+const cheatList = document.getElementById('cheatList');
+
+function populateCheatList() {
+  const checked = getCheatSelectedIndices();
+  cheatList.innerHTML = '';
+  students.forEach((name, i) => {
+    const label = document.createElement('label');
+    label.className = 'cheat-item';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.value = i;
+    cb.checked = checked.includes(i);
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(name));
+    cheatList.appendChild(label);
+  });
+}
+
+function getCheatSelectedIndices() {
+  return Array.from(cheatList.querySelectorAll('input[type="checkbox"]:checked'))
+    .map(cb => parseInt(cb.value))
+    .filter(v => v >= 0 && v < students.length);
+}
+
+populateCheatList();
+
+document.getElementById('cheatAll').addEventListener('click', () => {
+  cheatList.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+});
+document.getElementById('cheatNone').addEventListener('click', () => {
+  cheatList.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.ctrlKey && e.shiftKey && e.key === 'K') {
+    e.preventDefault();
+    cheatPanel.classList.toggle('open');
+    if (cheatPanel.classList.contains('open')) populateCheatList();
+  }
+});
+
+/* Calculate the final rotation angle so a target index lands under the arrow */
+function calcRotationForIndex(targetIdx) {
+  const n = students.length;
+  const arc = (2 * Math.PI) / n;
+  const targetAngle = -targetIdx * arc - arc / 2;
+  const jitter = (Math.random() - 0.5) * arc * 0.6;
+  return targetAngle + jitter;
+}
+
+/* ========== SPIN LOGIC (WHEEL) ========== */
+const spinBtn = document.getElementById('spinBtn');
+const resultEl = document.getElementById('result');
+
+spinBtn.addEventListener('click', () => {
+  if (isSpinning || students.length === 0) return;
+  ensureAudio();
+  isSpinning = true;
+  spinBtn.disabled = true;
+  resultEl.textContent = '';
+  resultEl.style.color = '#fff';
+
+  const duration = 5000 + Math.random() * 5000;
+  const selectedOptions = getCheatSelectedIndices();
+
+  let totalRotation;
+  let usedCheatIdx = -1;
+  if (selectedOptions.length > 0) {
+    const cheatIdx = selectedOptions[Math.floor(Math.random() * selectedOptions.length)];
+    usedCheatIdx = cheatIdx;
+    const fullTurns = (8 + Math.floor(Math.random() * 12)) * 2 * Math.PI;
+    const desiredFinal = calcRotationForIndex(cheatIdx);
+    let needed = desiredFinal - currentRotation;
+    needed = ((needed % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    totalRotation = fullTurns + needed;
+  } else {
+    const baseTurns = (8 + Math.random() * 12) * 2 * Math.PI;
+    totalRotation = baseTurns + Math.random() * 2 * Math.PI;
+  }
+
+  const startRotation = currentRotation;
+  const startTime = performance.now();
+  let lastIdx = -1;
+
+  function animate(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+
+    currentRotation = startRotation + totalRotation * eased;
+    drawWheel();
+
+    const idx = getWinnerIndex();
+    if (idx !== lastIdx) {
+      if (progress < 0.95) playTick();
+      lastIdx = idx;
+    }
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      isSpinning = false;
+      spinBtn.disabled = false;
+      const winner = students[getWinnerIndex()];
+      resultEl.style.color = '#FFD700';
+      resultEl.textContent = 'Chúc mừng: ' + winner + '!';
+      const removeWinner = document.getElementById('cheatRemoveWinner').checked;
+      const winnerIdx = getWinnerIndex();
+      if (removeWinner && students.length > 1) {
+        students.splice(winnerIdx, 1);
+        generateColors();
+        currentRotation = 0;
+        populateCheatList();
+        drawWheel();
+      }
+      playWinSound();
+      launchConfetti();
+    }
+  }
+
+  requestAnimationFrame(animate);
+});
+
+/* ========== RANDOM PICK GAME ========== */
+const pickBtn = document.getElementById('pickBtn');
+const pickNameEl = document.getElementById('pickName');
+const pickResultEl = document.getElementById('pickResult');
+let isPicking = false;
+
+pickBtn.addEventListener('click', () => {
+  if (isPicking || students.length === 0) return;
+  ensureAudio();
+  isPicking = true;
+  pickBtn.disabled = true;
+  pickResultEl.textContent = '';
+  pickResultEl.style.color = '#fff';
+  pickNameEl.classList.add('shuffling');
+
+  const selectedOptions = getCheatSelectedIndices();
+  let finalIdx;
+  if (selectedOptions.length > 0) {
+    finalIdx = selectedOptions[Math.floor(Math.random() * selectedOptions.length)];
+  } else {
+    finalIdx = Math.floor(Math.random() * students.length);
+  }
+
+  const duration = 2500 + Math.random() * 1500;
+  const startTime = performance.now();
+  let lastShown = -1;
+
+  function shuffleAnim(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+
+    // Slow down the shuffle rate as we approach the end
+    const interval = 50 + progress * 300;
+    const randIdx = Math.floor(Math.random() * students.length);
+    if (randIdx !== lastShown) {
+      pickNameEl.textContent = students[randIdx];
+      lastShown = randIdx;
+      if (progress < 0.9) playTick();
+    }
+
+    if (progress < 1) {
+      setTimeout(() => requestAnimationFrame(shuffleAnim), interval);
+    } else {
+      // Final result
+      pickNameEl.classList.remove('shuffling');
+      pickNameEl.textContent = students[finalIdx];
+      pickResultEl.style.color = '#FFD700';
+      pickResultEl.textContent = 'Chúc mừng: ' + students[finalIdx] + '!';
+
+      const removeWinner = document.getElementById('cheatRemoveWinner').checked;
+      if (removeWinner && students.length > 1) {
+        students.splice(finalIdx, 1);
+        generateColors();
+        populateCheatList();
+        drawWheel();
+      }
+
+      isPicking = false;
+      pickBtn.disabled = false;
+      playWinSound();
+      launchConfetti();
+    }
+  }
+
+  requestAnimationFrame(shuffleAnim);
+});
+
+/* ========== STUDENT LIST EDITOR ========== */
+const editorToggle = document.getElementById('editorToggle');
+const editorPanel = document.getElementById('editorPanel');
+const studentInput = document.getElementById('studentInput');
+const applyBtn = document.getElementById('applyList');
+
+studentInput.value = students.join('\n');
+
+editorToggle.addEventListener('click', () => {
+  editorPanel.classList.toggle('open');
+  if (editorPanel.classList.contains('open')) {
+    studentInput.value = students.join('\n');
+  }
+});
+
+applyBtn.addEventListener('click', () => {
+  const lines = studentInput.value.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+  if (lines.length < 2) {
+    alert('Cần ít nhất 2 học sinh!');
+    return;
+  }
+  students = lines;
+  generateColors();
+  editorPanel.classList.remove('open');
+  currentRotation = 0;
+  resultEl.textContent = '';
+  pickNameEl.textContent = '?';
+  pickResultEl.textContent = '';
+  populateCheatList();
+  drawWheel();
+});
+
+/* ========== FILL IN THE BLANKS GAME ========== */
+let fillQuestions = [
+  {
+    sentence: 'Trái Đất quay quanh ___ và mất khoảng ___ để hoàn thành một vòng.',
+    answers: ['Mặt Trời', '365 ngày'],
+    options: ['Mặt Trời', 'Mặt Trăng', '365 ngày', '30 ngày', 'Sao Hỏa']
+  },
+  {
+    sentence: 'Nước sôi ở ___ độ C và đóng băng ở ___ độ C.',
+    answers: ['100', '0'],
+    options: ['100', '0', '50', '200', '-10']
+  },
+  {
+    sentence: 'Thủ đô của Việt Nam là ___. Thành phố lớn nhất là ___.',
+    answers: ['Hà Nội', 'TP. Hồ Chí Minh'],
+    options: ['Hà Nội', 'Đà Nẵng', 'TP. Hồ Chí Minh', 'Huế', 'Hải Phòng']
+  }
+];
+
+let fillCurrentQ = 0;
+let fillActiveBlank = null; // index of currently selected blank
+
+const fillSentenceEl = document.getElementById('fillSentence');
+const fillWordsEl = document.getElementById('fillWords');
+const fillResultEl = document.getElementById('fillResult');
+const fillQNumEl = document.getElementById('fillQNum');
+const fillPrevBtn = document.getElementById('fillPrev');
+const fillNextBtn = document.getElementById('fillNext');
+const fillCheckBtn = document.getElementById('fillCheck');
+const fillResetBtn = document.getElementById('fillReset');
+const fillEditToggle = document.getElementById('fillEditToggle');
+const fillEditor = document.getElementById('fillEditor');
+const fillInput = document.getElementById('fillInput');
+const fillApplyBtn = document.getElementById('fillApply');
+const fillEditorCloseBtn = document.getElementById('fillEditorClose');
+
+// Track user answers per blank
+let fillUserAnswers = [];
+
+function fillRenderQuestion() {
+  const q = fillQuestions[fillCurrentQ];
+  if (!q) return;
+
+  fillActiveBlank = null;
+  fillResultEl.textContent = '';
+  fillResultEl.style.color = '#fff';
+
+  // Reset user answers for this question
+  const blankCount = (q.sentence.match(/___/g) || []).length;
+  fillUserAnswers = new Array(blankCount).fill(null);
+
+  fillQNumEl.textContent = `${fillCurrentQ + 1} / ${fillQuestions.length}`;
+  fillPrevBtn.disabled = fillCurrentQ === 0;
+  fillNextBtn.disabled = fillCurrentQ === fillQuestions.length - 1;
+
+  // Build sentence with blank slots
+  let html = '';
+  let blankIdx = 0;
+  const parts = q.sentence.split('___');
+  parts.forEach((part, i) => {
+    html += escapeHtml(part);
+    if (i < parts.length - 1) {
+      html += `<span class="fill-blank" data-blank="${blankIdx}"></span>`;
+      blankIdx++;
+    }
+  });
+  fillSentenceEl.innerHTML = html;
+
+  // Attach click to blanks
+  fillSentenceEl.querySelectorAll('.fill-blank').forEach(blank => {
+    blank.addEventListener('click', () => {
+      // If blank already has a word, release it back
+      const bi = parseInt(blank.dataset.blank);
+      if (fillUserAnswers[bi] !== null) {
+        fillUserAnswers[bi] = null;
+        blank.textContent = '';
+        blank.classList.remove('filled', 'correct', 'wrong');
+        fillRenderWords();
+      }
+      // Set active blank
+      fillSentenceEl.querySelectorAll('.fill-blank').forEach(b => b.classList.remove('active'));
+      blank.classList.add('active');
+      fillActiveBlank = bi;
+    });
+  });
+
+  // Shuffle options
+  const shuffled = [...q.options].sort(() => Math.random() - 0.5);
+  fillRenderWordsFromList(shuffled);
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function fillRenderWordsFromList(wordList) {
+  fillWordsEl.innerHTML = '';
+  wordList.forEach(word => {
+    const btn = document.createElement('button');
+    btn.className = 'fill-word';
+    btn.textContent = word;
+    // Check if this word is already used
+    if (fillUserAnswers.includes(word)) {
+      btn.classList.add('used');
+    }
+    btn.addEventListener('click', () => {
+      if (btn.classList.contains('used')) return;
+      if (fillActiveBlank === null) {
+        // Auto-select first empty blank
+        const emptyIdx = fillUserAnswers.indexOf(null);
+        if (emptyIdx === -1) return;
+        fillActiveBlank = emptyIdx;
+        const blankEl = fillSentenceEl.querySelector(`[data-blank="${emptyIdx}"]`);
+        fillSentenceEl.querySelectorAll('.fill-blank').forEach(b => b.classList.remove('active'));
+        blankEl.classList.add('active');
+      }
+      // Place word in active blank
+      fillUserAnswers[fillActiveBlank] = word;
+      const blankEl = fillSentenceEl.querySelector(`[data-blank="${fillActiveBlank}"]`);
+      blankEl.textContent = word;
+      blankEl.classList.add('filled');
+      blankEl.classList.remove('active', 'correct', 'wrong');
+
+      // Move to next empty blank
+      fillActiveBlank = null;
+      const nextEmpty = fillUserAnswers.indexOf(null);
+      if (nextEmpty !== -1) {
+        fillActiveBlank = nextEmpty;
+        const nextBlankEl = fillSentenceEl.querySelector(`[data-blank="${nextEmpty}"]`);
+        fillSentenceEl.querySelectorAll('.fill-blank').forEach(b => b.classList.remove('active'));
+        nextBlankEl.classList.add('active');
+      }
+
+      fillRenderWords();
+    });
+    fillWordsEl.appendChild(btn);
+  });
+}
+
+function fillRenderWords() {
+  fillWordsEl.querySelectorAll('.fill-word').forEach(btn => {
+    if (fillUserAnswers.includes(btn.textContent)) {
+      btn.classList.add('used');
+    } else {
+      btn.classList.remove('used');
+    }
+  });
+}
+
+// Check answers
+fillCheckBtn.addEventListener('click', () => {
+  const q = fillQuestions[fillCurrentQ];
+  if (!q) return;
+
+  let allCorrect = true;
+  fillSentenceEl.querySelectorAll('.fill-blank').forEach((blank, i) => {
+    blank.classList.remove('active', 'correct', 'wrong');
+    if (fillUserAnswers[i] === q.answers[i]) {
+      blank.classList.add('correct');
+    } else {
+      blank.classList.add('wrong');
+      allCorrect = false;
+    }
+  });
+
+  if (allCorrect) {
+    fillResultEl.style.color = '#2ECC71';
+    fillResultEl.textContent = 'Chính xác! Tuyệt vời!';
+    ensureAudio();
+    playWinSound();
+    launchConfetti();
+  } else {
+    fillResultEl.style.color = '#E74C3C';
+    fillResultEl.textContent = 'Chưa đúng, hãy thử lại!';
+  }
+});
+
+// Reset
+fillResetBtn.addEventListener('click', () => {
+  fillRenderQuestion();
+});
+
+// Navigation
+fillPrevBtn.addEventListener('click', () => {
+  if (fillCurrentQ > 0) {
+    fillCurrentQ--;
+    fillRenderQuestion();
+  }
+});
+fillNextBtn.addEventListener('click', () => {
+  if (fillCurrentQ < fillQuestions.length - 1) {
+    fillCurrentQ++;
+    fillRenderQuestion();
+  }
+});
+
+// Editor
+fillEditToggle.addEventListener('click', () => {
+  fillEditor.classList.toggle('open');
+  if (fillEditor.classList.contains('open')) {
+    fillInput.value = fillQuestionsToText(fillQuestions);
+  }
+});
+fillEditorCloseBtn.addEventListener('click', () => {
+  fillEditor.classList.remove('open');
+});
+
+fillApplyBtn.addEventListener('click', () => {
+  const parsed = fillParseText(fillInput.value);
+  if (parsed.length === 0) {
+    alert('Không tìm thấy câu hỏi hợp lệ!');
+    return;
+  }
+  fillQuestions = parsed;
+  fillCurrentQ = 0;
+  fillEditor.classList.remove('open');
+  fillRenderQuestion();
+});
+
+function fillQuestionsToText(questions) {
+  return questions.map(q => {
+    return q.sentence + '\n' + q.answers.join(' | ') + '\n' + q.options.join(' | ');
+  }).join('\n\n');
+}
+
+function fillParseText(text) {
+  const blocks = text.split(/\n\s*\n/).filter(b => b.trim());
+  const result = [];
+  blocks.forEach(block => {
+    const lines = block.split('\n').map(l => l.trim()).filter(l => l);
+    if (lines.length < 3) return;
+    const sentence = lines[0];
+    const answers = lines[1].split('|').map(s => s.trim()).filter(s => s);
+    const options = lines[2].split('|').map(s => s.trim()).filter(s => s);
+    const blankCount = (sentence.match(/___/g) || []).length;
+    if (blankCount === 0 || answers.length !== blankCount) return;
+    result.push({ sentence, answers, options });
+  });
+  return result;
+}
+
+// Init fill game
+fillRenderQuestion();
+
+/* ========== DRAG & DROP FILL GAME ========== */
+let dragQuestions = [
+  {
+    sentence: 'Trái Đất quay quanh ___ và mất khoảng ___ để hoàn thành một vòng.',
+    answers: ['Mặt Trời', '365 ngày'],
+    options: ['Mặt Trời', 'Mặt Trăng', '365 ngày', '30 ngày', 'Sao Hỏa']
+  },
+  {
+    sentence: 'Nước sôi ở ___ độ C và đóng băng ở ___ độ C.',
+    answers: ['100', '0'],
+    options: ['100', '0', '50', '200', '-10']
+  },
+  {
+    sentence: 'Thủ đô của Việt Nam là ___. Thành phố lớn nhất là ___.',
+    answers: ['Hà Nội', 'TP. Hồ Chí Minh'],
+    options: ['Hà Nội', 'Đà Nẵng', 'TP. Hồ Chí Minh', 'Huế', 'Hải Phòng']
+  }
+];
+
+let dragCurrentQ = 0;
+let dragUserAnswers = [];
+
+const dragSentenceEl = document.getElementById('dragSentence');
+const dragWordsEl = document.getElementById('dragWords');
+const dragResultEl = document.getElementById('dragResult');
+const dragQNumEl = document.getElementById('dragQNum');
+const dragPrevBtn = document.getElementById('dragPrev');
+const dragNextBtn = document.getElementById('dragNext');
+const dragCheckBtn = document.getElementById('dragCheck');
+const dragResetBtn = document.getElementById('dragReset');
+const dragEditToggle = document.getElementById('dragEditToggle');
+const dragEditorEl = document.getElementById('dragEditor');
+const dragInputEl = document.getElementById('dragInput');
+const dragApplyBtn = document.getElementById('dragApply');
+const dragEditorCloseBtn = document.getElementById('dragEditorClose');
+
+// Drag state
+let dragState = null; // { word, sourceBlankIdx (or null if from word bank), ghostEl }
+
+function dragRenderQuestion() {
+  const q = dragQuestions[dragCurrentQ];
+  if (!q) return;
+
+  dragState = null;
+  dragResultEl.textContent = '';
+  dragResultEl.style.color = '#fff';
+
+  const blankCount = (q.sentence.match(/___/g) || []).length;
+  dragUserAnswers = new Array(blankCount).fill(null);
+
+  dragQNumEl.textContent = `${dragCurrentQ + 1} / ${dragQuestions.length}`;
+  dragPrevBtn.disabled = dragCurrentQ === 0;
+  dragNextBtn.disabled = dragCurrentQ === dragQuestions.length - 1;
+
+  // Build sentence
+  let html = '';
+  let bi = 0;
+  const parts = q.sentence.split('___');
+  parts.forEach((part, i) => {
+    html += escapeHtml(part);
+    if (i < parts.length - 1) {
+      html += `<span class="drag-blank" data-blank="${bi}" data-dropzone="true"></span>`;
+      bi++;
+    }
+  });
+  dragSentenceEl.innerHTML = html;
+
+  // Setup drop zones on blanks
+  dragSentenceEl.querySelectorAll('.drag-blank').forEach(blank => {
+    blank.addEventListener('dragover', e => { e.preventDefault(); blank.classList.add('drag-over'); });
+    blank.addEventListener('dragleave', () => blank.classList.remove('drag-over'));
+    blank.addEventListener('drop', e => {
+      e.preventDefault();
+      blank.classList.remove('drag-over');
+      handleDropOnBlank(parseInt(blank.dataset.blank));
+    });
+    // Allow dragging word OUT of a filled blank
+    blank.addEventListener('mousedown', e => startDragFromBlank(e, blank));
+    blank.addEventListener('touchstart', e => startDragFromBlank(e, blank), { passive: false });
+  });
+
+  // Render word options
+  const shuffled = [...q.options].sort(() => Math.random() - 0.5);
+  dragRenderWords(shuffled);
+}
+
+function dragRenderWords(wordList) {
+  dragWordsEl.innerHTML = '';
+  wordList.forEach(word => {
+    const el = document.createElement('div');
+    el.className = 'drag-word';
+    el.textContent = word;
+    el.draggable = true;
+    el.dataset.word = word;
+
+    if (dragUserAnswers.includes(word)) {
+      el.classList.add('used');
+      el.draggable = false;
+    }
+
+    // Native drag
+    el.addEventListener('dragstart', e => {
+      dragState = { word, sourceBlankIdx: null, ghostEl: null };
+      el.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', word);
+    });
+    el.addEventListener('dragend', () => {
+      el.classList.remove('dragging');
+      dragState = null;
+    });
+
+    // Touch drag
+    el.addEventListener('touchstart', e => startTouchDrag(e, el, word, null), { passive: false });
+
+    dragWordsEl.appendChild(el);
+  });
+}
+
+function handleDropOnBlank(blankIdx) {
+  if (!dragState) return;
+  const { word, sourceBlankIdx } = dragState;
+
+  // If dragging from another blank, clear that blank
+  if (sourceBlankIdx !== null) {
+    dragUserAnswers[sourceBlankIdx] = null;
+    updateBlankDisplay(sourceBlankIdx);
+  }
+
+  // If target blank already has a word, return it
+  if (dragUserAnswers[blankIdx] !== null) {
+    // Swap: old word goes back
+    dragUserAnswers[blankIdx] = null;
+  }
+
+  dragUserAnswers[blankIdx] = word;
+  updateBlankDisplay(blankIdx);
+  dragUpdateWordStates();
+}
+
+function updateBlankDisplay(blankIdx) {
+  const blankEl = dragSentenceEl.querySelector(`[data-blank="${blankIdx}"]`);
+  if (!blankEl) return;
+  const val = dragUserAnswers[blankIdx];
+  blankEl.textContent = val || '';
+  blankEl.classList.toggle('filled', val !== null);
+  blankEl.classList.remove('correct', 'wrong', 'drag-over');
+}
+
+function dragUpdateWordStates() {
+  dragWordsEl.querySelectorAll('.drag-word').forEach(el => {
+    const used = dragUserAnswers.includes(el.dataset.word);
+    el.classList.toggle('used', used);
+    el.draggable = !used;
+  });
+}
+
+function startDragFromBlank(e, blankEl) {
+  const bi = parseInt(blankEl.dataset.blank);
+  if (dragUserAnswers[bi] === null) return;
+
+  const word = dragUserAnswers[bi];
+
+  if (e.type === 'touchstart') {
+    e.preventDefault();
+    startTouchDrag(e, blankEl, word, bi);
+  } else {
+    // For mouse, use native drag
+    blankEl.draggable = true;
+    blankEl.addEventListener('dragstart', function handler(ev) {
+      dragState = { word, sourceBlankIdx: bi, ghostEl: null };
+      ev.dataTransfer.effectAllowed = 'move';
+      ev.dataTransfer.setData('text/plain', word);
+      blankEl.removeEventListener('dragstart', handler);
+      setTimeout(() => {
+        dragUserAnswers[bi] = null;
+        updateBlankDisplay(bi);
+        dragUpdateWordStates();
+      }, 0);
+    }, { once: true });
+  }
+}
+
+// Touch drag handling (for mobile)
+function startTouchDrag(e, sourceEl, word, sourceBlankIdx) {
+  e.preventDefault();
+  const touch = e.touches[0];
+
+  // Create ghost
+  const ghost = document.createElement('div');
+  ghost.className = 'drag-ghost';
+  ghost.textContent = word;
+  ghost.style.left = touch.clientX + 'px';
+  ghost.style.top = touch.clientY + 'px';
+  document.body.appendChild(ghost);
+
+  dragState = { word, sourceBlankIdx, ghostEl: ghost };
+
+  if (sourceEl.classList.contains('drag-word')) {
+    sourceEl.classList.add('dragging');
+  }
+
+  // Clear source blank immediately
+  if (sourceBlankIdx !== null) {
+    dragUserAnswers[sourceBlankIdx] = null;
+    updateBlankDisplay(sourceBlankIdx);
+    dragUpdateWordStates();
+  }
+
+  let currentOverBlank = null;
+
+  function onTouchMove(ev) {
+    const t = ev.touches[0];
+    ghost.style.left = t.clientX + 'px';
+    ghost.style.top = t.clientY + 'px';
+
+    // Find blank under finger
+    ghost.style.display = 'none';
+    const elUnder = document.elementFromPoint(t.clientX, t.clientY);
+    ghost.style.display = '';
+
+    // Clear previous highlight
+    dragSentenceEl.querySelectorAll('.drag-blank').forEach(b => b.classList.remove('drag-over'));
+    currentOverBlank = null;
+
+    if (elUnder && elUnder.classList.contains('drag-blank')) {
+      elUnder.classList.add('drag-over');
+      currentOverBlank = parseInt(elUnder.dataset.blank);
+    }
+  }
+
+  function onTouchEnd() {
+    ghost.remove();
+    if (sourceEl.classList.contains('drag-word')) {
+      sourceEl.classList.remove('dragging');
+    }
+    dragSentenceEl.querySelectorAll('.drag-blank').forEach(b => b.classList.remove('drag-over'));
+
+    if (currentOverBlank !== null) {
+      handleDropOnBlank(currentOverBlank);
+    } else {
+      // Dropped nowhere — if from a blank, word goes back to bank
+      if (sourceBlankIdx !== null) {
+        // Already cleared above, just update word states
+        dragUpdateWordStates();
+      }
+    }
+
+    dragState = null;
+    document.removeEventListener('touchmove', onTouchMove);
+    document.removeEventListener('touchend', onTouchEnd);
+  }
+
+  document.addEventListener('touchmove', onTouchMove, { passive: false });
+  document.addEventListener('touchend', onTouchEnd);
+}
+
+// Also allow dropping words back to the word bank area
+dragWordsEl.addEventListener('dragover', e => e.preventDefault());
+dragWordsEl.addEventListener('drop', e => {
+  e.preventDefault();
+  if (dragState && dragState.sourceBlankIdx !== null) {
+    // Word returned to bank — already cleared in dragstart
+    dragUpdateWordStates();
+    dragState = null;
+  }
+});
+
+// Check
+dragCheckBtn.addEventListener('click', () => {
+  const q = dragQuestions[dragCurrentQ];
+  if (!q) return;
+
+  let allCorrect = true;
+  dragSentenceEl.querySelectorAll('.drag-blank').forEach((blank, i) => {
+    blank.classList.remove('correct', 'wrong', 'drag-over');
+    if (dragUserAnswers[i] === q.answers[i]) {
+      blank.classList.add('correct');
+    } else {
+      blank.classList.add('wrong');
+      allCorrect = false;
+    }
+  });
+
+  if (allCorrect) {
+    dragResultEl.style.color = '#2ECC71';
+    dragResultEl.textContent = 'Chính xác! Tuyệt vời!';
+    ensureAudio();
+    playWinSound();
+    launchConfetti();
+  } else {
+    dragResultEl.style.color = '#E74C3C';
+    dragResultEl.textContent = 'Chưa đúng, hãy thử lại!';
+  }
+});
+
+// Reset
+dragResetBtn.addEventListener('click', () => dragRenderQuestion());
+
+// Nav
+dragPrevBtn.addEventListener('click', () => {
+  if (dragCurrentQ > 0) { dragCurrentQ--; dragRenderQuestion(); }
+});
+dragNextBtn.addEventListener('click', () => {
+  if (dragCurrentQ < dragQuestions.length - 1) { dragCurrentQ++; dragRenderQuestion(); }
+});
+
+// Editor
+dragEditToggle.addEventListener('click', () => {
+  dragEditorEl.classList.toggle('open');
+  if (dragEditorEl.classList.contains('open')) {
+    dragInputEl.value = fillQuestionsToText(dragQuestions);
+  }
+});
+dragEditorCloseBtn.addEventListener('click', () => dragEditorEl.classList.remove('open'));
+dragApplyBtn.addEventListener('click', () => {
+  const parsed = fillParseText(dragInputEl.value);
+  if (parsed.length === 0) { alert('Không tìm thấy câu hỏi hợp lệ!'); return; }
+  dragQuestions = parsed;
+  dragCurrentQ = 0;
+  dragEditorEl.classList.remove('open');
+  dragRenderQuestion();
+});
+
+// Init drag game
+dragRenderQuestion();
+
+/* ========== INIT ========== */
+drawWheel();
+</script>
+</body>
+</html>
