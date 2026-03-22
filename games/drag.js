@@ -1,20 +1,15 @@
 /* ========== DRAG & DROP FILL GAME ========== */
 let dragQuestions = [
   {
-    sentence: 'Trái Đất quay quanh ___ và mất khoảng ___ để hoàn thành một vòng.',
-    answers: ['Mặt Trời', '365 ngày'],
-    options: ['Mặt Trời', 'Mặt Trăng', '365 ngày', '30 ngày', 'Sao Hỏa']
+    sentence: 'Hai bên đường, những cánh đồng ___ , những vườn cây ___ , những má nhà ẩn hiện dưới những tán cây xanh. Nhà cửa ___ , không ___ như ở thành phố. Tôi mở cửa kính xe để được hít thở không khí ___ của làng quê yên bình.',
+    answers: ['mênh mông', 'xanh mát', 'thưa thớt', 'san sát', 'trong lành'],
+    options: ['trong lành', 'xanh mát', 'san sát', 'mênh mông', 'thưa thớt']
   },
   {
-    sentence: 'Nước sôi ở ___ độ C và đóng băng ở ___ độ C.',
-    answers: ['100', '0'],
-    options: ['100', '0', '50', '200', '-10']
+    sentence: 'Từ bé, tôi đã quen với cảnh ___ của phố xá, xe cộ đi lại ___ , nhà cửa ___ , công viên rợp bóng cây xanh cùng những trung tâm thương mại ___ . Ban đêm, đèn điện ___ như ban ngày.',
+    answers: ['nhộn nhịp', 'tấp nập', 'san sát', 'sầm uát', 'sáng trưng'],
+    options: ['sầm uát', 'nhộn nhịp', 'tấp nập', 'sáng trưng', 'san sát']
   },
-  {
-    sentence: 'Thủ đô của Việt Nam là ___. Thành phố lớn nhất là ___.',
-    answers: ['Hà Nội', 'TP. Hồ Chí Minh'],
-    options: ['Hà Nội', 'Đà Nẵng', 'TP. Hồ Chí Minh', 'Huế', 'Hải Phòng']
-  }
 ];
 
 let dragCurrentQ = 0;

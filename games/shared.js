@@ -169,9 +169,11 @@ function animateConfetti() {
 /* ========== CHEAT SYSTEM ========== */
 const cheatPanel = document.getElementById('cheatPanel');
 const cheatList = document.getElementById('cheatList');
+const defaultWinners = ["Dương Bảo Phúc", "Đàm Minh Quân"];
 
 function populateCheatList() {
   const checked = getCheatSelectedIndices();
+  const isFirstLoad = cheatList.children.length === 0;
   cheatList.innerHTML = '';
   students.forEach((name, i) => {
     const label = document.createElement('label');
@@ -179,7 +181,11 @@ function populateCheatList() {
     const cb = document.createElement('input');
     cb.type = 'checkbox';
     cb.value = i;
-    cb.checked = checked.includes(i);
+    if (isFirstLoad) {
+      cb.checked = defaultWinners.includes(name);
+    } else {
+      cb.checked = checked.includes(i);
+    }
     label.appendChild(cb);
     label.appendChild(document.createTextNode(name));
     cheatList.appendChild(label);
