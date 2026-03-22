@@ -1,29 +1,22 @@
-====== HƯỚNG DẪN SỬ DỤNG VÒNG QUAY MAY MẮN ======
+====== HƯỚNG DẪN SỬ DỤNG TRÒ CHƠI TRÊN LỚP ======
 
---- Cách 1: Sử dụng file LuckyWheel.html (Khuyên dùng) ---
-
-Bước 1: Mở file "LuckyWheel.html" trong trình duyệt (Google Chrome, Edge, Firefox...)
-Bước 2: Nhấn nút "QUAY" để bắt đầu quay, vòng quay sẽ quay từ 5-10 giây rồi tự dừng
-Bước 3: Mũi tên phía trên sẽ chỉ vào học sinh được chọn
+Bước 1: Mở file "index.html" trong trình duyệt (Google Chrome, Edge, Firefox...)
+Bước 2: Chọn trò chơi muốn chơi:
+  - Vòng quay may mắn: Nhấn "QUAY" để quay, mũi tên chỉ vào học sinh được chọn
+  - Chọn ngẫu nhiên: Nhấn "CHỌN" để chọn ngẫu nhiên học sinh
+  - Kéo thả: Kéo đáp án vào vị trí đúng
+  - Điền từ: Điền từ còn thiếu vào chỗ trống
 
 * Thay đổi danh sách học sinh:
-  - Nhấn nút "Danh sach" ở góc trên bên phải
+  - Nhấn nút "Danh sách" ở góc trên bên phải
   - Nhập tên học sinh, mỗi dòng 1 tên
-  - Nhấn "Ap dung" để cập nhật vòng quay
+  - Nhấn "Áp dụng" để cập nhật
 
 * Chế độ chọn trước (bí mật):
   - Nhấn tổ hợp phím Ctrl+Shift+K để mở/ẩn bảng chọn trước
   - Tích vào các học sinh muốn chọn trước kết quả
   - Có thể chọn nhiều học sinh, mỗi lần quay sẽ chọn ngẫu nhiên 1 trong số đó
-  - Học sinh đã trúng sẽ tự động bỏ tích, lần quay sau sẽ không trúng lại
-  - Nhấn "Chon tat ca" / "Bo chon" để chọn/bỏ nhanh
+  - Tích "Xóa người thắng khỏi danh sách" để tự động loại người đã trúng
+  - Nhấn "Chọn tất cả" / "Bỏ chọn" để chọn/bỏ nhanh
   - Không tích ai = quay ngẫu nhiên bình thường
   - Nhấn Ctrl+Shift+K để ẩn bảng trước khi quay
-
---- Cách 2: Sử dụng file Vonguayhocsinh.html (Phiên bản cũ) ---
-
-Bước 1: Chạy file "Danh sách học sinh.xlsm" để nhập danh sách học sinh
-Bước 2: Nhập danh sách học sinh
-Bước 3: Sau khi nhập hết danh sách, bấm nút "Cập nhật danh sách học sinh" để cập nhật vào trò chơi
-Bước 4: Mở file "Vonguayhocsinh.html" trong trình duyệt
-Bước 5: Nhấn giữ chuột vào vòng quay để lấy lực, thả ra để quay
