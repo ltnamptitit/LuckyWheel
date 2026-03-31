@@ -169,49 +169,85 @@ function animateConfetti() {
 /* ========== CHEAT SYSTEM ========== */
 const cheatPanel = document.getElementById('cheatPanel');
 const cheatList = document.getElementById('cheatList');
-const defaultWinners = ["Dương Bảo Phúc", "Đàm Minh Quân"];
+const cheatQueue = document.getElementById('cheatQueue');
+
+// Set default winner order by name (1st winner first)
+const DEFAULT_WINNER_ORDER = [
+  "Dương Bảo Phúc",  // 1st winner
+  "Phan Hoàng Hải Nguyên",    // 2nd winner
+];
+let cheatOrder = DEFAULT_WINNER_ORDER
+  .map(name => students.indexOf(name))
+  .filter(idx => idx >= 0);
+
+function renderCheatQueue() {
+  if (cheatOrder.length === 0) {
+    cheatQueue.textContent = 'Chưa chọn';
+    cheatQueue.style.fontStyle = 'italic';
+  } else {
+    cheatQueue.style.fontStyle = 'normal';
+    cheatQueue.innerHTML = cheatOrder.map((idx, pos) =>
+      `<span style="color:#FFD700">${pos + 1}.</span> ${students[idx]}`
+    ).join('<br>');
+  }
+}
 
 function populateCheatList() {
-  const checked = getCheatSelectedIndices();
-  const isFirstLoad = cheatList.children.length === 0;
   cheatList.innerHTML = '';
   students.forEach((name, i) => {
-    const label = document.createElement('label');
-    label.className = 'cheat-item';
-    const cb = document.createElement('input');
-    cb.type = 'checkbox';
-    cb.value = i;
-    if (isFirstLoad) {
-      cb.checked = defaultWinners.includes(name);
+    const item = document.createElement('div');
+    item.className = 'cheat-item';
+    item.style.cursor = 'pointer';
+    const queuePos = cheatOrder.indexOf(i);
+    const badge = document.createElement('span');
+    badge.style.cssText = 'display:inline-block;min-width:18px;height:18px;line-height:18px;text-align:center;border-radius:50%;font-size:11px;font-weight:700;margin-right:4px;';
+    if (queuePos >= 0) {
+      badge.textContent = queuePos + 1;
+      badge.style.background = '#ff2d55';
+      badge.style.color = '#fff';
     } else {
-      cb.checked = checked.includes(i);
+      badge.textContent = '';
+      badge.style.background = 'rgba(255,255,255,.15)';
     }
-    label.appendChild(cb);
-    label.appendChild(document.createTextNode(name));
-    cheatList.appendChild(label);
+    item.appendChild(badge);
+    item.appendChild(document.createTextNode(name));
+    item.addEventListener('click', () => {
+      const pos = cheatOrder.indexOf(i);
+      if (pos >= 0) {
+        cheatOrder.splice(pos, 1);
+      } else {
+        cheatOrder.push(i);
+      }
+      populateCheatList();
+      renderCheatQueue();
+    });
+    cheatList.appendChild(item);
   });
+  renderCheatQueue();
 }
 
 function getCheatSelectedIndices() {
-  return Array.from(cheatList.querySelectorAll('input[type="checkbox"]:checked'))
-    .map(cb => parseInt(cb.value))
-    .filter(v => v >= 0 && v < students.length);
+  return cheatOrder.filter(idx => idx >= 0 && idx < students.length);
 }
 
 populateCheatList();
 
-document.getElementById('cheatAll').addEventListener('click', () => {
-  cheatList.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
-});
 document.getElementById('cheatNone').addEventListener('click', () => {
-  cheatList.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+  cheatOrder = [];
+  populateCheatList();
 });
+
+function toggleCheatPanel() {
+  cheatPanel.classList.toggle('open');
+  if (cheatPanel.classList.contains('open')) populateCheatList();
+}
+
+document.getElementById('cheatToggle').addEventListener('click', toggleCheatPanel);
 
 document.addEventListener('keydown', (e) => {
   if (e.ctrlKey && e.shiftKey && e.key === 'K') {
     e.preventDefault();
-    cheatPanel.classList.toggle('open');
-    if (cheatPanel.classList.contains('open')) populateCheatList();
+    toggleCheatPanel();
   }
 });
 

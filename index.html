@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Trò Chơi Lớp Học - Classroom Games</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -173,6 +176,26 @@
   }
 
   /* ========== STUDENT LIST EDITOR ========== */
+  .cheat-toggle {
+    position: fixed;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.25);
+    color: #fff;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    backdrop-filter: blur(8px);
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+  .cheat-toggle:hover { background: rgba(255,255,255,.25); }
   .editor-toggle {
     position: fixed;
     top: 12px;
@@ -234,8 +257,8 @@
   .cheat-panel {
     display: none;
     position: fixed;
-    bottom: 12px;
-    left: 12px;
+    bottom: 60px;
+    right: 12px;
     background: rgba(20,20,40,.95);
     border: 1px solid rgba(255,0,0,.3);
     border-radius: 12px;
@@ -414,9 +437,9 @@
   /* ========== DRAG & DROP ========== */
   .drag-blank {
     display: inline-block;
-    min-width: 90px;
-    min-height: 36px;
-    padding: 4px 14px;
+    min-width: 140px;
+    min-height: 48px;
+    padding: 8px 20px;
     border: 2px dashed rgba(255,255,255,.35);
     margin: 0 4px;
     text-align: center;
@@ -428,7 +451,7 @@
     background: rgba(255,255,255,.03);
   }
   .drag-blank.drag-over { border-color: #ff2d55; background: rgba(255,45,85,.15); transform: scale(1.05); }
-  .drag-blank.filled { border-style: solid; border-color: rgba(255,215,0,.4); background: rgba(255,215,0,.08); cursor: grab; }
+  .drag-blank.filled { border-style: solid; border-color: rgba(255,215,0,.4); background: rgba(255,215,0,.08); cursor: grab; min-width: 90px; min-height: 36px; padding: 4px 14px; }
   .drag-blank.correct { border-color: #2ECC71; background: rgba(46,204,113,.15); color: #2ECC71; }
   .drag-blank.wrong { border-color: #E74C3C; background: rgba(231,76,60,.15); color: #E74C3C; }
   .drag-word {
@@ -594,17 +617,17 @@
 <!-- Shared elements -->
 <canvas class="confetti" id="confetti"></canvas>
 <button class="editor-toggle" id="editorToggle">Danh sách</button>
+<button class="cheat-toggle" id="cheatToggle" title="Cheat menu">⚙️</button>
 
 <!-- Secret cheat panel: Ctrl+Shift+K to toggle -->
 <div class="cheat-panel" id="cheatPanel">
-  <h3>Chọn học sinh:</h3>
-  <div id="cheatList" style="max-height:220px; overflow-y:auto; margin-bottom:6px;"></div>
-  <div style="display:flex; gap:6px; margin-bottom:6px;">
-    <button id="cheatAll" style="flex:1; padding:4px; background:#4f46e5; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:12px;">Chọn tất cả</button>
-    <button id="cheatNone" style="flex:1; padding:4px; background:#555; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:12px;">Bỏ chọn</button>
-  </div>
-  <label class="cheat-item" style="margin-top:6px; border-top:1px solid rgba(255,255,255,.15); padding-top:8px;">
-    <input type="checkbox" id="cheatRemoveWinner" checked> Xóa người thắng khỏi danh sách
+  <h3>Thứ tự người thắng:</h3>
+  <div id="cheatQueue" style="min-height:24px; margin-bottom:8px; font-size:12px; color:rgba(255,255,255,.5); font-style:italic;">Chưa chọn</div>
+  <div style="border-top:1px solid rgba(255,255,255,.15); padding-top:6px; margin-bottom:4px; font-size:11px; color:rgba(255,255,255,.4);">Click để thêm vào hàng đợi:</div>
+  <div id="cheatList" style="max-height:200px; overflow-y:auto; margin-bottom:6px;"></div>
+  <button id="cheatNone" style="width:100%; padding:4px; background:#555; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:12px; margin-bottom:6px;">Xóa hàng đợi</button>
+  <label class="cheat-item" style="border-top:1px solid rgba(255,255,255,.15); padding-top:8px;">
+    <input type="checkbox" id="cheatRemoveWinner"> Xóa người thắng khỏi danh sách
   </label>
   <div class="cheat-hint">Ctrl+Shift+K để ẩn/hiện</div>
 </div>

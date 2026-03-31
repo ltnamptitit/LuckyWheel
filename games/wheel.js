@@ -88,9 +88,15 @@ function calcRotationForIndex(targetIdx) {
 const spinBtn = document.getElementById('spinBtn');
 const resultEl = document.getElementById('result');
 
+let pendingReset = false;
+
 spinBtn.addEventListener('click', () => {
   if (isSpinning || students.length === 0) return;
   ensureAudio();
+  if (pendingReset) {
+    currentRotation = 0;
+    pendingReset = false;
+  }
   isSpinning = true;
   spinBtn.disabled = true;
   resultEl.textContent = '';
@@ -102,7 +108,7 @@ spinBtn.addEventListener('click', () => {
   let totalRotation;
   let usedCheatIdx = -1;
   if (selectedOptions.length > 0) {
-    const cheatIdx = selectedOptions[Math.floor(Math.random() * selectedOptions.length)];
+    const cheatIdx = selectedOptions[0];
     usedCheatIdx = cheatIdx;
     const fullTurns = (8 + Math.floor(Math.random() * 12)) * 2 * Math.PI;
     const desiredFinal = calcRotationForIndex(cheatIdx);
@@ -145,9 +151,15 @@ spinBtn.addEventListener('click', () => {
       if (removeWinner && students.length > 1) {
         students.splice(winnerIdx, 1);
         generateColors();
-        currentRotation = 0;
+        pendingReset = true;
+        // update cheatOrder indices after student removal
+        cheatOrder = cheatOrder
+          .filter(idx => idx !== winnerIdx)
+          .map(idx => idx > winnerIdx ? idx - 1 : idx);
         populateCheatList();
-        drawWheel();
+      } else if (selectedOptions.length > 0) {
+        cheatOrder.shift();
+        populateCheatList();
       }
       playWinSound();
       launchConfetti();
